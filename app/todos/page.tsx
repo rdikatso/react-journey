@@ -10,6 +10,7 @@ interface Todo {
 export default function TodoApp() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [input, setInput] = useState('')
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all')
 
   const addTodo = () => {
     if (input.trim()) {
@@ -29,6 +30,12 @@ export default function TodoApp() {
     setTodos(todos.filter(todo => todo.id !== id));
   };
 
+  const filteredTodos = todos.filter(todo => {
+    if (filter === 'active') return !todo.completed
+    if (filter === 'completed') return todo.completed
+    return true
+  })
+
   return (
     <main className="min-h-screen p-8">
       <h1 className="text-3xl font-bold mb-4">My Todos</h1>
@@ -37,7 +44,7 @@ export default function TodoApp() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+          onKeyDown={(e) => e.key === 'Enter' && addTodo()}
           className="border px-4 py-2 rounded flex-1"
           placeholder="Add a todo..."
         />
@@ -48,8 +55,36 @@ export default function TodoApp() {
           Add
         </button>
       </div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-2">
+          <button
+            className={`px-3 py-1 rounded ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => setFilter('all')}
+            aria-pressed={filter === 'all'}
+          >
+            All
+          </button>
+          <button
+            className={`px-3 py-1 rounded ${filter === 'active' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => setFilter('active')}
+            aria-pressed={filter === 'active'}
+          >
+            Active
+          </button>
+          <button
+            className={`px-3 py-1 rounded ${filter === 'completed' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => setFilter('completed')}
+            aria-pressed={filter === 'completed'}
+          >
+            Completed
+          </button>
+        </div>
+        <div className="text-sm text-gray-600">
+          {todos.filter(t => !t.completed).length} items left
+        </div>
+      </div>
       <div className="space-y-2">
-        {todos.map(todo => (
+        {filteredTodos.map(todo => (
           <div key={todo.id} className="border p-3 rounded flex items-center gap-2">
             <input
               type="checkbox"
