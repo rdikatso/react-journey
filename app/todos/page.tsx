@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Todo {
   id: number
@@ -9,7 +9,9 @@ interface Todo {
 
 export default function TodoApp() {
   const [todos, setTodos] = useState<Todo[]>([])
+
   const [input, setInput] = useState('')
+
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all')
 
   const addTodo = () => {
@@ -35,6 +37,46 @@ export default function TodoApp() {
     if (filter === 'completed') return todo.completed
     return true
   })
+
+  // Load persisted todos and filter on initial mount (client-side only)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('todos')
+      if (raw !== null) {
+        try {
+          const parsed = JSON.parse(raw) as Todo[]
+          setTimeout(() => setTodos(parsed), 0)
+        } catch {
+          // ignore parse errors
+        }
+      }
+
+      const v = localStorage.getItem('filter')
+      if (v === 'active' || v === 'completed') {
+        setTimeout(() => setFilter(v as 'active' | 'completed'), 0)
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  // Persist todos to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('todos', JSON.stringify(todos))
+    } catch {
+      // ignore
+    }
+  }, [todos])
+
+  // Persist filter selection
+  useEffect(() => {
+    try {
+      localStorage.setItem('filter', filter)
+    } catch {
+      // ignore
+    }
+  }, [filter])
 
   return (
     <main className="min-h-screen p-8">
